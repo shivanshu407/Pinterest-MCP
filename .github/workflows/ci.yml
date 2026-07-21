@@ -1,0 +1,45 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APP_URL: http://localhost:3000
+      PINTEREST_APP_ID: ci-placeholder
+      PINTEREST_APP_SECRET: ci-placeholder
+      PINTEREST_INCLUDE_SECRET_SCOPES: "false"
+      UPSTASH_REDIS_REST_URL: https://example.invalid
+      UPSTASH_REDIS_REST_TOKEN: ci-placeholder
+      TOKEN_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      LEGAL_ENTITY_NAME: CI Test Operator
+      SUPPORT_EMAIL: ci@example.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
